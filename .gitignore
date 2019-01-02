@@ -1,0 +1,6 @@
+libraries/
+
+*.class
+*.pyc
+*.exe
+*.o
