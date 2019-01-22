@@ -1,5 +1,7 @@
 libraries/
 empty-example/
+docs-local/
+.vscode/
 
 *.class
 *.pyc
