@@ -25,6 +25,32 @@ function resizeRendererToDisplaySize(renderer) {
     return needResize;
 }
 
+function addObject(scene, x, y, obj, objects, spread) {
+    obj.position.x = x * spread;
+    obj.position.y = y * spread;
+
+    scene.add(obj);
+    objects.push(obj);
+}
+
+function createMaterial() {
+    const material = new THREE.MeshPhongMaterial({
+        side: THREE.DoubleSide,
+    });
+
+    const hue = Math.random();
+    const saturation = 1;
+    const luminance = 0.5;
+    material.color.setHSL(hue, saturation, luminance);
+
+    return material;
+}
+
+function addSolidGeometry(scene, x, y, geometry, objects, spread) {
+    const mesh = new THREE.Mesh(geometry, createMaterial());
+    addObject(scene, x, y, mesh, objects, spread);
+}
+
 function main() {
     // Setup Canvas
     const canvas = document.querySelector('#c');
@@ -32,29 +58,25 @@ function main() {
     const renderer = new THREE.WebGLRenderer({canvas});
 
     // Setup Camera
-    const fov = 75;
+    const fov = 40;
     const aspect = 2;
     const near = 0.1;
-    const far = 5;
+    const far = 1000;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.z = 2;
+    camera.position.z = 120;
 
     // Create Scene
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xAAAAAA);
 
-    // Cubes
-    const boxWidth = 1;
-    const boxHeight = 1; 
-    const boxDepth = 1;
-    const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+    // Add Objects
+    const objects = [];
+    const spread = 15;
 
-    const material = new THREE.MeshPhongMaterial({color: 0x44aa88});
-
-    const cubes = [
-        makeInstance(scene, geometry, 0x44aa88,  0),
-        makeInstance(scene, geometry, 0xff00aa, -2),
-        makeInstance(scene, geometry, 0xaa8844,  2),
-    ];
+    const width = 8;
+    const height = 8;
+    const depth = 8;
+    addSolidGeometry(scene, -2, -2, new THREE.BoxBufferGeometry(width, height, depth), objects, spread);
 
     // Directional Light
     const color = 0xFFFFFF;
@@ -72,11 +94,11 @@ function main() {
             camera.updateProjectionMatrix();
         }
 
-        cubes.forEach((cube, ndx) => {
+        objects.forEach((obj, ndx) => {
             const speed = 1 + ndx * 0.1;
             const rot = time * speed;
-            cube.rotation.x = rot;
-            cube.rotation.y = rot;
+            obj.rotation.x = rot;
+            obj.rotation.y = rot;
         });
 
         renderer.render(scene, camera);
