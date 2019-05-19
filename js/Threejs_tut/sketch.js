@@ -13,6 +13,18 @@ function makeInstance(scene, geometry, color, x) {
     return cube;
 }
 
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const pixelRatio = window.devicePixelRatio;
+    const width = canvas.clientWidth * pixelRatio;
+    const height = canvas.clientHeight * pixelRatio;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+        renderer.setSize(width, height, false);
+    }
+    return needResize;
+}
+
 function main() {
     // Setup Canvas
     const canvas = document.querySelector('#c');
@@ -40,7 +52,7 @@ function main() {
 
     const cubes = [
         makeInstance(scene, geometry, 0x44aa88,  0),
-        makeInstance(scene, geometry, 0x8844aa, -2),
+        makeInstance(scene, geometry, 0xff00aa, -2),
         makeInstance(scene, geometry, 0xaa8844,  2),
     ];
 
@@ -53,6 +65,12 @@ function main() {
 
     function render(time) {
         time *= 0.001;
+
+        if (resizeRendererToDisplaySize(renderer)) {
+            const canvas = renderer.domElement;
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+        }
 
         cubes.forEach((cube, ndx) => {
             const speed = 1 + ndx * 0.1;
