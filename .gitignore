@@ -3,6 +3,7 @@ empty-example/
 docs-local/
 .vscode/
 node-modules/
+node_modules/
 
 *.class
 *.pyc
