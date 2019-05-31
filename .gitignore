@@ -10,3 +10,4 @@ node_modules/
 *.exe
 *.o
 *.csv
+.eslintrc.json
