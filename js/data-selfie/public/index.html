@@ -37,6 +37,8 @@
     </p>
 
     <div id="mapid"></div>
+    <br />
+    <button id="btn-submit" onclick="handleButton()">Submit!</button>
 
     <script>
       const mymap = L.map("mapid").setView([0.0, 0.0], 1);
@@ -58,21 +60,36 @@
 
           document.getElementById("lat").textContent = latitude.toFixed(2);
           document.getElementById("lon").textContent = longitude.toFixed(2);
-
-          const data = { latitude, longitude };
-          const options = {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-          };
-          const response = await fetch("/api", options);
-          const data_json = await response.json();
-          console.log(data_json);
         });
       } else {
         console.log("geolocation not available");
+      }
+
+      async function handleButton() {
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(async position => {
+            const { latitude, longitude } = position.coords;
+            marker.setLatLng([latitude, longitude]);
+            mymap.setView([latitude, longitude], 13);
+
+            document.getElementById("lat").textContent = latitude.toFixed(2);
+            document.getElementById("lon").textContent = longitude.toFixed(2);
+
+            const data = { latitude, longitude };
+            const options = {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(data)
+            };
+            const response = await fetch("/api", options);
+            const data_json = await response.json();
+            console.log(data_json);
+          });
+        } else {
+          console.log("geolocation not available");
+        }
       }
     </script>
   </body>
