@@ -1,96 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
-      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-      crossorigin=""
-    />
-    <script
-      src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
-      integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
-      crossorigin=""
-    ></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
-    <style>
-      #mapid {
-        height: 280px;
-      }
-    </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+    integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+    crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+    integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+    crossorigin=""></script>
 
-    <title>Data Selfie</title>
-  </head>
+  <style>
+    #mapid {
+      height: 280px;
+    }
+  </style>
 
-  <body>
-    <h1>Data Selfie App</h1>
+  <title>Data Selfie</title>
+</head>
 
-    <p>Hello!</p>
+<body>
+  <h1>Data Selfie App</h1>
 
-    <p>
-      Latitude: <span id="lat">0.00</span>&deg;<br />
-      Longitude: <span id="lon">0.00</span>&deg;
-    </p>
+  <p>Hello!</p>
 
-    <div id="mapid"></div>
-    <br />
-    <button id="btn-submit" onclick="handleButton()">Submit!</button>
+  <p>
+    Latitude: <span id="lat">0.00</span>&deg;<br />
+    Longitude: <span id="lon">0.00</span>&deg;
+  </p>
 
-    <script>
-      const mymap = L.map("mapid").setView([0.0, 0.0], 1);
-      const attribution =
-        'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors';
-      const tile_url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-      const tiles = L.tileLayer(tile_url, {
-        attribution
+  <div id="mapid"></div>
+  <br />
+  <input id="mood" value="Happy" />
+
+  <button id="btn-submit" onclick="handleButton()">Submit!</button>
+  <br />
+  <br />
+
+  <script>
+    const mymap = L.map("mapid").setView([0.0, 0.0], 1);
+    const attribution =
+      'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors';
+    const tile_url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+    const tiles = L.tileLayer(tile_url, {
+      attribution
+    });
+    tiles.addTo(mymap);
+
+    const marker = L.marker([0, 0]).addTo(mymap);
+
+    let lat, lon;
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async position => {
+        const {
+          latitude,
+          longitude
+        } = position.coords;
+        marker.setLatLng([latitude, longitude]);
+        mymap.setView([latitude, longitude], 13);
+
+        document.getElementById("lat").textContent = latitude.toFixed(2);
+        document.getElementById("lon").textContent = longitude.toFixed(2);
+        lat = latitude;
+        lon = longitude;
       });
-      tiles.addTo(mymap);
+    } else {
+      console.log("geolocation not available");
+    }
 
-      const marker = L.marker([0, 0]).addTo(mymap);
+    async function handleButton() {
+      const mood = document.getElementById("mood").value;
+      const data = {
+        latitude: lat,
+        longitude: lon,
+        mood
+      };
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      };
+      const response = await fetch("/api", options);
+      const data_json = await response.json();
+      //getData();
+      console.log(data_json);
+    }
 
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(async position => {
-          const { latitude, longitude } = position.coords;
-          marker.setLatLng([latitude, longitude]);
-          mymap.setView([latitude, longitude], 13);
+    async function getData() {
+      const response = await fetch('/api');
+      const data = await response.json();
 
-          document.getElementById("lat").textContent = latitude.toFixed(2);
-          document.getElementById("lon").textContent = longitude.toFixed(2);
-        });
-      } else {
-        console.log("geolocation not available");
+      for (item of data) {
+        const root = document.createElement('div');
+
+        const mood = document.createElement('div');
+        mood.textContent = `Mood: ${item.mood}`;
+
+        const geo = document.createElement('div');
+        geo.textContent = `Location: ${item.latitude}°, ${item.longitude}°`;
+
+        const date = document.createElement('div');
+        const dateString = new Date(item.timestamp).toLocaleString();
+        date.textContent = `Date: ${dateString}`;
+
+        const lbreak = document.createElement('br');
+
+        root.append(mood, geo, date, lbreak);
+        document.body.append(root);
       }
+      console.log(data);
+    }
 
-      async function handleButton() {
-        if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(async position => {
-            const { latitude, longitude } = position.coords;
-            marker.setLatLng([latitude, longitude]);
-            mymap.setView([latitude, longitude], 13);
+    getData();
+  </script>
+</body>
 
-            document.getElementById("lat").textContent = latitude.toFixed(2);
-            document.getElementById("lon").textContent = longitude.toFixed(2);
-
-            const data = { latitude, longitude };
-            const options = {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify(data)
-            };
-            const response = await fetch("/api", options);
-            const data_json = await response.json();
-            console.log(data_json);
-          });
-        } else {
-          console.log("geolocation not available");
-        }
-      }
-    </script>
-  </body>
 </html>

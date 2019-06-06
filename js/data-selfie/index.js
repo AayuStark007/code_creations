@@ -18,15 +18,19 @@ const database = new Datastore("database.db");
 database.loadDatabase();
 
 app.post("/api", (request, response) => {
-  console.log(request.body);
   const data = request.body;
   const timestamp = Date.now();
   data.timestamp = timestamp;
   database.insert(data);
-  response.json({
-    status: "success",
-    timestamp: timestamp,
-    latitude: data.latitude,
-    longitude: data.longitude
+  response.json(data);
+});
+
+app.get("/api", (request, response) => {
+  database.find({}, (error, data) => {
+    if (error) {
+      response.end();
+      return;
+    }
+    response.json(data);
   });
 });
